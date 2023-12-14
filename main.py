@@ -1,12 +1,5 @@
-from datetime import timedelta
-
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, \
-    QPushButton, QMessageBox, QComboBox, QTableWidget, QTableWidgetItem, QListWidget, QDateEdit
-from PyQt5.QtCore import Qt
-from sqlalchemy import select, func
-from openpyxl import Workbook
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QPushButton
 from db.db_conn import Database
-from panel.admin_panel import AdminPanel
 from windows.login_window import LoginWindow
 from windows.registration_window import RegistrationWindow
 
