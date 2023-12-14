@@ -64,13 +64,15 @@ class AdminPanel(QWidget):
             # Заголовки столбцов
             sheet['A1'] = 'Order ID'
             sheet['B1'] = 'User ID'
-            sheet['C1'] = 'Total Price'
+            sheet['C1'] = 'Phone Number'
+            sheet['D1'] = 'Total Price'
 
             # Заполните данные из orders_data
             for row_index, order in enumerate(orders_data, start=2):
                 sheet.cell(row=row_index, column=1, value=order.id)
                 sheet.cell(row=row_index, column=2, value=order.user_id)
-                sheet.cell(row=row_index, column=3, value=order.total_price)
+                sheet.cell(row=row_index, column=3, value=order.phone_number)
+                sheet.cell(row=row_index, column=4, value=order.total_price)
 
             # Выравнивание текста в ячейках
             for column in sheet.columns:
