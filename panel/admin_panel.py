@@ -65,17 +65,23 @@ class AdminPanel(QWidget):
             sheet = workbook.active
 
             # Заголовки столбцов
-            sheet['A1'] = 'Order ID'
-            sheet['B1'] = 'User ID'
-            sheet['C1'] = 'Phone Number'
-            sheet['D1'] = 'Total Price'
+            sheet['A1'] = 'Номер заказа'
+            sheet['B1'] = 'Идентифиактор пользователя'
+            sheet['C1'] = 'Номер телефона'
+            sheet['D1'] = 'Сумма заказа'
+
+            # Сумма всех заказов
+            total_orders_price = sum(order.total_price for order in orders_data)
 
             # Заполните данные из orders_data
             for row_index, order in enumerate(orders_data, start=2):
                 sheet.cell(row=row_index, column=1, value=order.id)
                 sheet.cell(row=row_index, column=2, value=order.user_id)
                 sheet.cell(row=row_index, column=3, value=order.phone_number)
-                sheet.cell(row=row_index, column=4, value=order.total_price)
+                sheet.cell(row=row_index, column=4, value=order.total_price)  # Используйте общую сумму заказа
+
+            # Добавьте ячейку для отображения суммы всех заказов в столбце D1
+            sheet.cell(row=1, column=4, value=f'Сумма всех заказов: {total_orders_price}')
 
             # Выравнивание текста в ячейках
             for column in sheet.columns:
