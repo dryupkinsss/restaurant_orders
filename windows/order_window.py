@@ -150,14 +150,16 @@ class OrderWindow(QMainWindow):  # Changed QWidget to QMainWindow
                     }
                     self.db.session.execute(self.db.order_details.insert().values(order_detail_data))
 
+            # После успешного оформления заказа, вы можете получить номер заказа
+            order_id = result.inserted_primary_key[0]
+
             # После успешного оформления заказа, вы можете очистить корзину и вывести сообщение
             self.selected_items = []
             self.cart_list.clear()
 
             # Фиксируем изменения в базе данных
             self.db.session.commit()
-            QMessageBox.information(self, 'Успех', 'Заказ успешно оформлен!')
-            self.close()
+            QMessageBox.information(self, 'Успех', f'Заказ №{order_id} успешно оформлен!')
 
         except Exception as e:
             # Откатываем транзакцию в случае ошибки

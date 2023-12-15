@@ -11,6 +11,9 @@ class AdminPanel(QWidget):
 
         self.db = db
 
+        self.setWindowTitle('Панель администратора')
+        self.setGeometry(200, 200, 800, 400)
+
         layout = QVBoxLayout()
 
         # Добавьте элементы интерфейса для выбора периода

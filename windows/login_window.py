@@ -38,6 +38,7 @@ class LoginWindow(QWidget):
             if user and user.password == password:
                 if user.is_admin:
                     # Открываем окно админ-панели
+                    self.close()
                     self.show_admin_panel()
                 else:
                     self.current_user_id = user.id
