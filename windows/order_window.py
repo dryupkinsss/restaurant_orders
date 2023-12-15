@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QLabel, QLineEdit
 from sqlalchemy import select, func
 
 
-class OrderWindow(QMainWindow):  # Changed QWidget to QMainWindow
+class OrderWindow(QMainWindow):
     def __init__(self, db, current_user_id):
         super().__init__()
 
@@ -48,15 +48,12 @@ class OrderWindow(QMainWindow):  # Changed QWidget to QMainWindow
         central_widget.setLayout(layout)
         self.setCentralWidget(central_widget)
 
-        # Кнопка "Просмотреть корзину"
         self.view_cart_button = QPushButton('Просмотреть корзину', self)
         self.view_cart_button.clicked.connect(self.view_cart)
         layout.addWidget(self.view_cart_button)
 
-        # Connect the category change event to the update_dishes method
         self.category_combo.currentIndexChanged.connect(self.update_dishes)
 
-        # Initialize dishes for the first time
         self.update_dishes()
 
         self.checkout_button = QPushButton('Оформить заказ', self)
@@ -64,20 +61,16 @@ class OrderWindow(QMainWindow):  # Changed QWidget to QMainWindow
         layout.addWidget(self.checkout_button)
 
     def update_dishes(self):
-        # Clear the current dish combo box
         self.dish_combo.clear()
 
-        # Get the selected category name
         category_name = self.category_combo.currentText()
 
-        # Retrieve dishes for the selected category
         category_id = self.db.session.execute(
             select(self.db.categories.c.id).where(self.db.categories.c.name == category_name)).scalar()
 
         dishes = self.db.session.execute(
             select(self.db.dishes).where(self.db.dishes.c.category_id == category_id)).fetchall()
 
-        # Populate the dish combo box with the retrieved dishes
         for dish in dishes:
             self.dish_combo.addItem(f"{dish.name} - {dish.price:.2f} руб.", userData=dish.id)
 
@@ -86,18 +79,14 @@ class OrderWindow(QMainWindow):  # Changed QWidget to QMainWindow
         dish_id = self.dish_combo.currentData()
         quantity = int(self.quantity_input.text())
 
-        # Получить объект блюда из базы данных
         dish = self.db.session.execute(
             select(self.db.dishes).where(self.db.dishes.c.id == dish_id)).fetchone()
 
         if dish:
-            # Получить цену блюда
             price = dish.price
 
-            # Рассчитать общую стоимость
             total_price = quantity * price
 
-            # Добавить выбранный товар в список для последующего просмотра
             item_text = f"{quantity} x {dish.name} ({category_name}) - {total_price:.2f} руб."
             self.selected_items.append(item_text)
             self.cart_list.addItem(item_text)
@@ -118,7 +107,7 @@ class OrderWindow(QMainWindow):  # Changed QWidget to QMainWindow
             # Создаем новый заказ
             order_data = {
                 'user_id': self.current_user_id,
-                'created_date': func.now(),  # Устанавливаем текущую дату и время
+                'created_date': func.now(),
             }
             result = self.db.session.execute(self.db.orders.insert().values(order_data))
             order_id = result.inserted_primary_key[0]
@@ -150,10 +139,9 @@ class OrderWindow(QMainWindow):  # Changed QWidget to QMainWindow
                     }
                     self.db.session.execute(self.db.order_details.insert().values(order_detail_data))
 
-            # После успешного оформления заказа, вы можете получить номер заказа
+            # Получаем номер заказа
             order_id = result.inserted_primary_key[0]
 
-            # После успешного оформления заказа, вы можете очистить корзину и вывести сообщение
             self.selected_items = []
             self.cart_list.clear()
 

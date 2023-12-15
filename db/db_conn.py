@@ -43,3 +43,50 @@ class Database:
         metadata.create_all(engine)
         Session = sessionmaker(bind=engine)
         self.session = Session()
+
+    def populate_data(self):
+        # Проверяем, сколько записей в таблице users
+        user_count = self.session.query(func.count()).select_from(self.users).scalar()
+
+        if user_count == 0:
+            # Если таблица users пуста, вставляем данные
+            self.session.execute(self.users.insert(), [
+                {'phone_number': '12345678999', 'username': 'admin', 'password': 'admin', 'is_admin': True},
+            ])
+
+        # Проверяем, сколько записей в таблице categories
+        category_count = self.session.query(func.count()).select_from(self.categories).scalar()
+
+        if category_count == 0:
+            # Если таблица categories пуста, вставляем данные
+            self.session.execute(self.categories.insert(), [
+                {'name': 'Пицца'},
+                {'name': 'Суши'},
+                {'name': 'Бургеры'},
+                {'name': 'Десерты'},
+            ])
+
+        # Проверяем, сколько записей в таблице dishes
+        dish_count = self.session.query(func.count()).select_from(self.dishes).scalar()
+
+        if dish_count == 0:
+            # Если таблица dishes пуста, вставляем данные
+            self.session.execute(self.dishes.insert(), [
+                {'name': 'Маргарита', 'category_id': 1, 'price': 650},
+                {'name': 'Пепперони', 'category_id': 1, 'price': 800},
+                {'name': 'Гавайская', 'category_id': 1, 'price': 600},
+                {'name': 'Ролл с лососем', 'category_id': 2, 'price': 550},
+                {'name': 'Филадельфия', 'category_id': 2, 'price': 600},
+                {'name': 'Унаги', 'category_id': 2, 'price': 500},
+                {'name': 'Чизбургер', 'category_id': 3, 'price': 250},
+                {'name': 'Вегетарианский', 'category_id': 3, 'price': 200},
+                {'name': 'Бекон бургер','category_id': 3, 'price': 350},
+                {'name': 'Чизкейк', 'category_id': 4, 'price': 400},
+                {'name': 'Тирамису', 'category_id': 4, 'price': 450},
+                {'name': 'Шоколадный фондан', 'category_id': 4, 'price': 390}
+            ])
+
+        self.session.commit()
+
+db = Database()
+db.populate_data()
