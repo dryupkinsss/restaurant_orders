@@ -1,4 +1,5 @@
-from sqlalchemy import create_engine, ForeignKey, Column, String, Integer, MetaData, Table, Float, func, DateTime, Boolean
+from sqlalchemy import create_engine, ForeignKey, Column, String, Integer, MetaData, Table, Float, func, DateTime, \
+    Boolean, update
 from sqlalchemy.orm import sessionmaker
 
 class Database:
@@ -30,6 +31,7 @@ class Database:
                             Column('id', Integer, primary_key=True),
                             Column('user_id', Integer, ForeignKey('users.id')),
                             Column('created_date', DateTime, default=func.now()),
+                            Column('status', String, default='В обработке'),
                             )
 
         self.order_details = Table('order_details', metadata,
@@ -85,6 +87,12 @@ class Database:
                 {'name': 'Тирамису', 'category_id': 4, 'price': 450},
                 {'name': 'Шоколадный фондан', 'category_id': 4, 'price': 390}
             ])
+
+        order_count = self.session.query(func.count()).select_from(self.orders).scalar()
+
+        if order_count > 0:
+            # Если таблица заказов не пуста, обновите статус для существующих заказов
+            self.session.execute(update(self.orders).values({'status': 'В обработке'}))
 
         self.session.commit()
 

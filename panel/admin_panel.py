@@ -1,8 +1,8 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QMessageBox, QDateEdit, QDialog, QLineEdit, \
-    QTableWidget, QTableWidgetItem, QHeaderView
+    QTableWidget, QTableWidgetItem, QHeaderView, QComboBox
 from openpyxl import Workbook
-from sqlalchemy import func, distinct
+from sqlalchemy import func, distinct, update
 from datetime import timedelta
 
 class AdminPanel(QWidget):
@@ -122,7 +122,34 @@ class UserOrdersDialog(QDialog):
         self.orders_table = QTableWidget(self)
         layout.addWidget(self.orders_table)
 
+        self.update_status_button = QPushButton('Обновить статус', self)
+        self.update_status_button.clicked.connect(self.update_order_status)
+        layout.addWidget(self.update_status_button)
+
         self.setLayout(layout)
+
+    def get_selected_order_id(self):
+        selected_indexes = self.orders_table.selectionModel().selectedRows()
+        if selected_indexes:
+            selected_row = selected_indexes[0].row()
+            order_id_item = self.orders_table.item(selected_row, 0)  # Предполагается, что ID заказа находится в столбце 0
+            if order_id_item:
+                return int(order_id_item.text())
+        return None
+
+    def update_order_status(self):
+        selected_order_id = self.get_selected_order_id()
+        if selected_order_id is not None:
+            # Здесь вы можете обновить статус выбранного заказа в базе данных
+            new_status = "Готов"  # Замените на ваш новый статус
+            self.db.session.execute(
+                self.db.orders.update().values(status=new_status).where(self.db.orders.c.id == selected_order_id)
+            )
+            self.db.session.commit()
+            QMessageBox.information(self, 'Успех', 'Статус заказа обновлен успешно.')
+            self.view_user_orders()
+        else:
+            QMessageBox.warning(self, 'Ошибка', 'Выберите заказ для обновления статуса.')
 
     def view_user_orders(self):
         phone_number = self.phone_input.text()
@@ -131,6 +158,7 @@ class UserOrdersDialog(QDialog):
             user_orders = self.db.session.query(
                 self.db.orders.c.id,
                 self.db.orders.c.created_date,
+                self.db.orders.c.status,
                 func.sum(self.db.order_details.c.total_price).label('total_price')
             ).join(
                 self.db.order_details, self.db.orders.c.id == self.db.order_details.c.order_id
@@ -139,17 +167,19 @@ class UserOrdersDialog(QDialog):
             ).filter(
                 self.db.users.c.phone_number == phone_number
             ).group_by(
-                self.db.orders.c.id, self.db.orders.c.created_date
+                self.db.orders.c.id, self.db.orders.c.created_date, self.db.orders.c.status
             ).all()
 
             self.orders_table.setRowCount(len(user_orders))
-            self.orders_table.setColumnCount(4)
-            self.orders_table.setHorizontalHeaderLabels(['Номер заказа', 'Дата и время заказа', 'Сумма заказа', 'Блюда заказа'])
+            self.orders_table.setColumnCount(5)
+            self.orders_table.setHorizontalHeaderLabels(
+                ['Номер заказа', 'Дата и время заказа', 'Статус', 'Сумма заказа', 'Блюда заказа'])
 
             for row_index, order in enumerate(user_orders):
                 self.orders_table.setItem(row_index, 0, QTableWidgetItem(str(order.id)))
                 self.orders_table.setItem(row_index, 1, QTableWidgetItem(str(order.created_date)))
-                self.orders_table.setItem(row_index, 2, QTableWidgetItem(str(order.total_price)))
+                self.orders_table.setItem(row_index, 2, QTableWidgetItem(str(order.status)))
+                self.orders_table.setItem(row_index, 3, QTableWidgetItem(str(order.total_price)))
 
                 # Добавляем блюда к ячейке 'Блюда заказа'
                 dishes = self.db.session.query(
@@ -166,15 +196,14 @@ class UserOrdersDialog(QDialog):
 
                 dishes_info = "\n".join(f"{dish.name} x{dish.quantity} - {dish.total_price}" for dish in dishes)
                 item = QTableWidgetItem(dishes_info)
-                item.setTextAlignment(Qt.AlignTop | Qt.AlignLeft)  # Выравнивание текста в ячейке
-                self.orders_table.setItem(row_index, 3, item)
+                item.setTextAlignment(Qt.AlignTop | Qt.AlignLeft)
+                self.orders_table.setItem(row_index, 4, item)
 
-                # Задаем высоту строки в зависимости от количества блюд в заказе
                 dishes_count = len(dishes)
-                self.orders_table.setRowHeight(row_index, dishes_count * 20)  # Вы можете регулировать высоту
+                self.orders_table.setRowHeight(row_index, dishes_count * 20)
 
             self.orders_table.resizeColumnsToContents()
-            self.orders_table.horizontalHeader().setSectionResizeMode(3, QHeaderView.Stretch)
+            self.orders_table.horizontalHeader().setSectionResizeMode(4, QHeaderView.Stretch)
 
         except Exception as e:
             QMessageBox.critical(self, 'Ошибка', f'Произошла ошибка: {str(e)}')
