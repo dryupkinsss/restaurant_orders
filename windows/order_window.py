@@ -77,7 +77,16 @@ class OrderWindow(QMainWindow):
     def add_to_cart(self):
         category_name = self.category_combo.currentText()
         dish_id = self.dish_combo.currentData()
-        quantity = int(self.quantity_input.text())
+        quantity_text = self.quantity_input.text()
+
+
+        try:
+            quantity = int(quantity_text)
+            if quantity <= 0:
+                raise ValueError("Количество должно быть положительным числом")
+        except ValueError:
+            QMessageBox.warning(self, 'Ошибка', 'Укажите корректное количество блюд.')
+            return
 
         dish = self.db.session.execute(
             select(self.db.dishes).where(self.db.dishes.c.id == dish_id)).fetchone()
