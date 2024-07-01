@@ -62,4 +62,5 @@ python main.py
 [Андрей Седнев 34ИС-21]
 
 <a name="present"><h2>Презентация к проету</h2></a>
-[Презентация.pptx](https://github.com/user-attachments/files/16059487/default.pptx)
+[Презентация.pptx](https://github.com/user-attachments/files/16059527/default.pptx)
+
